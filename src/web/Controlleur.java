@@ -42,7 +42,7 @@ import metierEntite.Semestre;
 		"/supprimerG.php", "/inscrireAd", "/inscrire-etape", "/inscriptionsA", "/supprimerAG.php",
 		"/add-inscriptionAexcel", "/ajouter-note", "/ajouter-note-post", "/add-inscriptionAexcel.php",
 		"/inscrire-Etap.php", "/inscrire-semestre", "/inscrire-Sem.php", "/inscrire-module", "/inscrire-Mod.php",
-		"/home", "/choisir-filiere","/importer-note", "/importer-note-post" })
+		"/home", "/choisir-filiere","/importer-note", "/importer-note-post", "/importer-note-rattrapage", "/importer-note-rattrapage-post" ,"/deliberation","/deliberation-post"})
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class Controlleur extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -212,8 +212,8 @@ public class Controlleur extends HttpServlet {
 			int idModule = Integer.parseInt(request.getParameter("module"));
 			String etudiant = request.getParameter("etudiant");
 			double note = Double.parseDouble(request.getParameter("note"));
-			
-			Note noteObj = new Note(note, idModule, etudiant);
+			String session1 = request.getParameter("session");
+			Note noteObj = new Note(note, idModule, session1, etudiant);
 			
 			try {
 				noteCRUD.ajouterNote(noteObj);
@@ -230,6 +230,10 @@ public class Controlleur extends HttpServlet {
 		else if(request.getServletPath().equals("/importer-note"))
 		{
 			this.getServletContext().getRequestDispatcher("/importer-note.jsp").forward(request, response);
+			return;
+		}else if(request.getServletPath().equals("/importer-note-rattrapage"))
+		{
+			this.getServletContext().getRequestDispatcher("/importer-note-rattrapage.jsp").forward(request, response);
 			return;
 		}
 		else if(request.getServletPath().equals("/importer-note-post")) {
@@ -256,6 +260,32 @@ public class Controlleur extends HttpServlet {
 
 			
 			this.getServletContext().getRequestDispatcher("/importer-note.jsp").forward(request, response);
+			return;
+		}
+		else if(request.getServletPath().equals("/importer-note-rattrapage-post")) {
+			Part filePart = request.getPart("notes");
+
+			if (filePart != null) {
+
+				System.out.println(filePart.getName());
+				System.out.println(filePart.getSize());
+				System.out.println(filePart.getContentType());
+
+				inputNotes = filePart.getInputStream();
+			}
+			
+			try {
+				noteCRUD.importerNotesRatt(inputNotes);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			
+			this.getServletContext().getRequestDispatcher("/importer-note-rattrapage.jsp").forward(request, response);
 			return;
 		}
 		// ajouter administrativement
@@ -668,6 +698,21 @@ public class Controlleur extends HttpServlet {
 			this.getServletContext().getRequestDispatcher("/home.jsp").forward(request, response);
 			return;
 
+		}
+		else if(request.getServletPath().equals("/deliberation-post")) {
+			int semestre = Integer.parseInt(request.getParameter("semestre"));
+			try {
+				noteCRUD.deliberation(semestre);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+			this.getServletContext().getRequestDispatcher("/deliberation.jsp").forward(request, response);
+		}
+		else if(request.getServletPath().equals("/deliberation")) {
+			this.getServletContext().getRequestDispatcher("/deliberation.jsp").forward(request, response);
 		}
 
 	}
